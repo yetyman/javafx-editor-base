@@ -1,0 +1,126 @@
+package org.yetyman.editor;
+
+import javafx.collections.ObservableList;
+import javafx.geometry.Point2D;
+import javafx.scene.Node;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+public class EditorPane extends Pane {
+    protected final ResizableCanvas bgCanvas = new ResizableCanvas();
+    protected final PaneOfManyPlanes transformationPane = new PaneOfManyPlanes();
+    protected final ResizableCanvas fgCanvas = new ResizableCanvas();
+    protected final Pane controlPane = new Pane();
+
+    public final ObservableList<Node> items = transformationPane.getChildren();
+    public final ObservableList<Node> anchors = controlPane.getChildren();
+    AtomicReference<Point2D> lastOffset = new AtomicReference<>();
+    AtomicReference<Anchor> draggedAnchor = new AtomicReference<>();
+
+    public EditorPane(){
+        getChildren().addAll(bgCanvas, transformationPane, fgCanvas, controlPane);
+
+        controlPane.setOnDragDropped(evt->{
+            evt.setDropCompleted(true);
+        });
+        controlPane.setOnDragOver(evt->{
+            evt.acceptTransferModes(TransferMode.ANY);
+            Point2D lastMouse = new Point2D(evt.getX(), evt.getY());
+            Anchor a = draggedAnchor.get();
+
+            Point2D pt = transformationPane.planeManager.fromTo(Plane.screen, a.anchorPlane.get(), lastMouse.add(a.size.get().multiply(.5)).subtract(lastOffset.get()));
+            a.location.set(pt);
+        });
+    }
+
+    @Override
+    protected void layoutChildren() {
+        super.layoutChildren();
+        bgCanvas.resizeRelocate(0,0,getWidth(),getHeight());
+        transformationPane.resizeRelocate(0,0,getWidth(),getHeight());
+        fgCanvas.resizeRelocate(0,0,getWidth(),getHeight());
+        controlPane.resizeRelocate(0,0,getWidth(),getHeight());
+
+        //items should lay themselves out in the pomp,
+        // anchors need to be positioned here.
+        for (Node control : anchors) {
+            Anchor a = (Anchor)control.getProperties().getOrDefault("ANCHOR", null);
+            if (a != null) {
+                Point2D pt = transformationPane.planeManager.fromTo(a.anchorPlane.get(), Plane.screen, a.location.get());
+                control.resizeRelocate(pt.getX()-a.size.get().getX()/2, pt.getY()-a.size.get().getY()/2, a.size.get().getX(), a.size.get().getY());
+            }
+        }
+
+        drawBackground(bgCanvas.getGraphicsContext2D());
+        drawForeground(fgCanvas.getGraphicsContext2D());
+    }
+
+    protected void drawBackground(GraphicsContext gc){
+        gc.clearRect(0,0, getWidth(), getHeight());
+
+    }
+    protected void drawForeground(GraphicsContext gc){
+        gc.clearRect(0,0, getWidth(), getHeight());
+
+    }
+
+    public static PlaneSettings setPlane(Node child, Plane plane) {
+        return PaneOfManyPlanes.setPlane(child, plane);
+    }
+    public static PlaneSettings setPlane(Node child, Plane plane, PlaneScale scale) {
+        return PaneOfManyPlanes.setPlane(child, plane, scale);
+    }
+
+    public enum AnchorStyle { round, square };
+    public Anchor createAnchor(AnchorStyle anchorStyle) {
+        Anchor a = new Anchor();
+        Button btn = (Button) a.ui.get();
+
+        btn.setMinSize(USE_PREF_SIZE, USE_PREF_SIZE);
+        btn.setPrefSize(a.size.get().getX(), a.size.get().getY());
+        btn.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+
+        btn.getProperties().put("ANCHOR", a);
+
+        switch (anchorStyle) {
+            case round -> {
+                btn.setStyle("-fx-border-radius: 20; -fx-background-radius: 20; -fx-border-style: solid; -fx-border-width: .5;");
+            }
+            case square -> {
+                btn.setStyle("-fx-border-radius: 0; -fx-background-radius: 0;");
+            }
+        }
+
+        btn.setOnDragDetected(evt->{
+            Dragboard d = btn.startDragAndDrop(TransferMode.ANY);
+//            WritableImage image = btn.snapshot(new SnapshotParameters(), null);
+
+//            d.setDragView(image, evt.getX()+1, evt.getY()+1);
+            lastOffset.set(new Point2D(evt.getX(), evt.getY()));
+            draggedAnchor.set(a);
+
+            ClipboardContent content = new ClipboardContent();
+            content.putString("Circle source text");
+            d.setContent(content);
+        });
+        btn.setOnMouseDragged((MouseEvent event) -> {
+            event.setDragDetect(true);
+        });
+        btn.setOnDragDone(evt->{
+            draggedAnchor.set(null);
+        });
+
+
+        anchors.add(btn);
+
+        return a;
+    }
+}
