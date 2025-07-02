@@ -1,5 +1,8 @@
 package org.yetyman.editor;
 
+import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -16,28 +19,41 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class EditorPane extends Pane {
     protected final ResizableCanvas bgCanvas = new ResizableCanvas();
-    protected final PaneOfManyPlanes transformationPane = new PaneOfManyPlanes();
+    public final PaneOfManyPlanes transformationPane = new PaneOfManyPlanes();
     protected final ResizableCanvas fgCanvas = new ResizableCanvas();
-    protected final Pane controlPane = new Pane();
 
     public final ObservableList<Node> items = transformationPane.getChildren();
-    public final ObservableList<Node> anchors = controlPane.getChildren();
+    public final ObservableList<Node> anchors = FXCollections.observableArrayList();
     AtomicReference<Point2D> lastOffset = new AtomicReference<>();
     AtomicReference<Anchor> draggedAnchor = new AtomicReference<>();
 
-    public EditorPane(){
-        getChildren().addAll(bgCanvas, transformationPane, fgCanvas, controlPane);
+    public final ObservableList<EditorItem> editorItems = FXCollections.observableArrayList();
 
-        controlPane.setOnDragDropped(evt->{
+    public EditorPane(){
+        getChildren().addAll(bgCanvas, transformationPane, fgCanvas);
+
+        bgCanvas.setMouseTransparent(true);
+        fgCanvas.setMouseTransparent(true);
+        setOnDragDropped(evt->{
             evt.setDropCompleted(true);
         });
-        controlPane.setOnDragOver(evt->{
+        setOnDragOver(evt->{
             evt.acceptTransferModes(TransferMode.ANY);
             Point2D lastMouse = new Point2D(evt.getX(), evt.getY());
             Anchor a = draggedAnchor.get();
 
             Point2D pt = transformationPane.planeManager.fromTo(Plane.screen, a.anchorPlane.get(), lastMouse.add(a.size.get().multiply(.5)).subtract(lastOffset.get()));
             a.location.set(pt);
+        });
+        anchors.addListener((ListChangeListener<Node>) c->{
+            while(c.next()) {
+                for (Node node : c.getRemoved()) {
+                    getChildren().remove(node);
+                }
+                for (Node node : c.getAddedSubList()) {
+                    getChildren().add(node);
+                }
+            }
         });
     }
 
@@ -47,7 +63,6 @@ public class EditorPane extends Pane {
         bgCanvas.resizeRelocate(0,0,getWidth(),getHeight());
         transformationPane.resizeRelocate(0,0,getWidth(),getHeight());
         fgCanvas.resizeRelocate(0,0,getWidth(),getHeight());
-        controlPane.resizeRelocate(0,0,getWidth(),getHeight());
 
         //items should lay themselves out in the pomp,
         // anchors need to be positioned here.
@@ -66,9 +81,17 @@ public class EditorPane extends Pane {
     protected void drawBackground(GraphicsContext gc){
         gc.clearRect(0,0, getWidth(), getHeight());
 
+        for (EditorItem editorItem : editorItems) {
+            editorItem.renderBackground(this.transformationPane.planeManager, gc);
+        }
+
     }
     protected void drawForeground(GraphicsContext gc){
         gc.clearRect(0,0, getWidth(), getHeight());
+
+        for (EditorItem editorItem : editorItems) {
+            editorItem.renderForeground(this.transformationPane.planeManager, gc);
+        }
 
     }
 

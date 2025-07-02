@@ -54,7 +54,7 @@ public class PaneOfManyPlanes extends Pane {
         if(plane == null || scale == null)
             throw new RuntimeException("plane and scale cannot be null");
 
-        PlaneSettings settings = new PlaneSettings(plane, scale, new SimpleObjectProperty<>(new BoundingBox(10,10,100,100)));
+        PlaneSettings settings = new PlaneSettings(child, plane, scale, new SimpleObjectProperty<>(new BoundingBox(10,10,100,100)));
         child.getProperties().put("PLANE", settings);
 
         //set up request layout event
