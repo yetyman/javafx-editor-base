@@ -102,6 +102,10 @@ public class EditorPane extends Pane {
         return PaneOfManyPlanes.setPlane(child, plane, scale);
     }
 
+    public static PlaneSettings getPlaneSettings(Node n) {
+        return PaneOfManyPlanes.getPlane(n);
+    }
+
     public enum AnchorStyle { round, square };
     public Anchor createAnchor(AnchorStyle anchorStyle) {
         Anchor a = new Anchor();

@@ -47,6 +47,11 @@ public class PaneOfManyPlanes extends Pane {
         planeManager.screenSpace.set(new BoundingBox(0,0, width, height));
     }
 
+
+    public static PlaneSettings getPlane(Node child) {
+        return (PlaneSettings) child.getProperties().get("PLANE");
+    }
+
     public static PlaneSettings setPlane(Node child, Plane plane) {
         return setPlane(child, plane, PlaneScale.size);
     }
@@ -101,6 +106,9 @@ public class PaneOfManyPlanes extends Pane {
             });
 
             if(settings.scale() == PlaneScale.scale) {
+                Bounds screenB = planeManager.fromTo(settings.plane(), Plane.screen, settings.boundary().get());
+                Bounds planeB = settings.boundary().get();
+
                 //apply the matrix directly
                 if(child.getTransforms().isEmpty()) {
                     child.getTransforms().add(new Scale(scaleUnit.getWidth(), scaleUnit.getHeight()));
@@ -108,11 +116,10 @@ public class PaneOfManyPlanes extends Pane {
                     child.getTransforms().set(0, new Scale(scaleUnit.getWidth(), scaleUnit.getHeight()));
                 }
 
-                Bounds b = planeManager.fromTo(settings.plane(), Plane.screen, settings.boundary().get());
-                child.resizeRelocate(b.getMinX(), b.getMinY(), settings.boundary().get().getWidth(), settings.boundary().get().getHeight());
+                child.resizeRelocate(screenB.getMinX(), screenB.getMinY(), planeB.getWidth(), planeB.getHeight());
             } else {
                 //layout within boundary
-                if(!child.getTransforms().isEmpty())
+                if (!child.getTransforms().isEmpty())
                     child.getTransforms().clear();
 
                 Bounds b = planeManager.fromTo(settings.plane(), Plane.screen, settings.boundary().get());
