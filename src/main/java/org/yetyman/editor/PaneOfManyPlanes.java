@@ -110,17 +110,17 @@ public class PaneOfManyPlanes extends Pane {
                 Bounds planeB = settings.boundary().get();
 
                 //apply the matrix directly
-                if(child.getTransforms().isEmpty()) {
+                if (child.getTransforms().isEmpty()) {
                     child.getTransforms().add(new Scale(scaleUnit.getWidth(), scaleUnit.getHeight()));
-                }else {
+                } else {
                     child.getTransforms().set(0, new Scale(scaleUnit.getWidth(), scaleUnit.getHeight()));
                 }
 
                 child.resizeRelocate(screenB.getMinX(), screenB.getMinY(), planeB.getWidth(), planeB.getHeight());
             } else {
                 //layout within boundary
-                if (!child.getTransforms().isEmpty())
-                    child.getTransforms().clear();
+//                if (!child.getTransforms().isEmpty())
+//                    child.getTransforms().clear();
 
                 Bounds b = planeManager.fromTo(settings.plane(), Plane.screen, settings.boundary().get());
                 child.resizeRelocate(b.getMinX(), b.getMinY(), b.getWidth(), b.getHeight());

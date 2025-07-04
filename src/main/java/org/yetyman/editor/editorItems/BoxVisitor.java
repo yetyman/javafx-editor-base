@@ -1,6 +1,7 @@
 package org.yetyman.editor.editorItems;
 
 import binding.Property;
+import com.sun.scenario.effect.MotionBlur;
 import javafx.geometry.*;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -24,6 +25,7 @@ public class BoxVisitor implements EditorItem {
     private Anchor r;
     private final Property<PlaneSettings> plane = new Property<>(null);
     private EditorPane editor;
+    private Rotate currentRotationMatrix;
 
     @Override
     public void initialize(EditorPane editor) {
@@ -139,7 +141,7 @@ public class BoxVisitor implements EditorItem {
                     }
                     //minorly biased here fitting the anchors to the box, rather than the box to anchors.
                     Bounds bounds = plane.get().boundary().get();
-                    double rotation = plane.get().node().getRotate();
+                    double rotation = currentRotationMatrix.getAngle();
 
                     Point2D tlPt = new Point2D(bounds.getMinX(), bounds.getMinY());
                     Point2D trPt = new Point2D(bounds.getMaxX(), bounds.getMinY());
@@ -181,7 +183,16 @@ public class BoxVisitor implements EditorItem {
         double angle = tl.location.get().angle(tr.location.get(), tl.location.get().add(new Point2D(1, 0)));
         if (tr.location.get().getY() < tl.location.get().getY())
             angle = -angle;
-        plane.get().node().setRotate(angle);
+
+
+        Bounds unit = new BoundingBox(0,0,1,1);
+        if(plane.get().scale() == PlaneScale.size)
+            unit = editor.transformationPane.planeManager.fromTo(plane.get().plane(), Plane.screen, unit);
+
+        currentRotationMatrix.setAngle(angle);
+        Point2D relLoc = new Point2D(hLen/2, vLen/2);
+        currentRotationMatrix.setPivotX(relLoc.getX()*unit.getWidth());
+        currentRotationMatrix.setPivotY(relLoc.getY()*unit.getHeight());
         plane.get().boundary().set(b);
     }
 
@@ -271,6 +282,10 @@ public class BoxVisitor implements EditorItem {
     public void changeUI(Node n) {
         //we don't currently need to do anything with the previous node. no bindings yet
         nodes.set(0, n);
+
+        currentRotationMatrix = (Rotate) n.getProperties().computeIfAbsent("ROTATION", (s)->new Rotate(0, 0, 0));
+        if(!n.getTransforms().contains(currentRotationMatrix))
+            n.getTransforms().add(currentRotationMatrix);
         this.plane.set(EditorPane.getPlaneSettings(n));//plane binding will update locations
     }
 }
