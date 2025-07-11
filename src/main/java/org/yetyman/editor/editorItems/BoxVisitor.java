@@ -190,9 +190,6 @@ public class BoxVisitor implements EditorItem {
             unit = editor.transformationPane.planeManager.fromTo(plane.get().plane(), Plane.screen, unit);
 
         currentRotationMatrix.setAngle(angle);
-        Point2D relLoc = new Point2D(hLen/2, vLen/2);
-        currentRotationMatrix.setPivotX(relLoc.getX()*unit.getWidth());
-        currentRotationMatrix.setPivotY(relLoc.getY()*unit.getHeight());
         plane.get().boundary().set(b);
     }
 
@@ -283,7 +280,14 @@ public class BoxVisitor implements EditorItem {
         //we don't currently need to do anything with the previous node. no bindings yet
         nodes.set(0, n);
 
-        currentRotationMatrix = (Rotate) n.getProperties().computeIfAbsent("ROTATION", (s)->new Rotate(0, 0, 0));
+        currentRotationMatrix = (Rotate) n.getProperties().computeIfAbsent("ROTATION", (s)-> {
+            Rotate r = new Rotate(0, 0, 0);
+            n.layoutBoundsProperty().addListener((v,x,b)->{
+                r.setPivotX(b.getCenterX());
+                r.setPivotY(b.getCenterY());
+            });
+            return r;
+        });
         if(!n.getTransforms().contains(currentRotationMatrix))
             n.getTransforms().add(currentRotationMatrix);
         this.plane.set(EditorPane.getPlaneSettings(n));//plane binding will update locations
