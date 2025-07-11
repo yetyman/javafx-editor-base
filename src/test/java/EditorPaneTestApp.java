@@ -6,6 +6,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,9 @@ public class EditorPaneTestApp extends Application {
         placeHolder2.setOnMouseClicked(evt->box.changeUI(placeHolder2));
         placeHolder3.setOnMouseClicked(evt->box.changeUI(placeHolder3));
 
+
+        var moon = createSampleMoon();
+
         controller.setPrefSize(600, 600);
 //        controller.setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
         controller.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.DASHED, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
@@ -76,6 +81,13 @@ public class EditorPaneTestApp extends Application {
     private BoxVisitor createSampleVisitor(){
         BoxVisitor box = new BoxVisitor();
         box.initialize(editor);
+        return box;
+    }
+
+    private SampleMoon createSampleMoon(){
+        SampleMoon box = new SampleMoon();
+        box.initialize(editor);
+
         return box;
     }
 
