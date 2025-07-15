@@ -11,6 +11,7 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import org.apache.commons.math3.util.FastMath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yetyman.controls.GridHelper;
@@ -106,9 +107,10 @@ public class PaneOfManyPlanesTestApp extends Application {
         };
 
         Pane border = new Pane();
-        border.setStyle("-fx-border-color: "+clr+"; -fx-border-style: dashed; -fx-border-width: "+(v*50)+";");
+        border.setStyle("-fx-border-color: "+clr+"; -fx-border-style: dashed; -fx-border-width: "+ FastMath.round(v*50)+";");
         pomp.getChildren().add(border);
-        PlaneSettings settings4 = PaneOfManyPlanes.setPlane(border, plane, PlaneScale.scale);
+        //normal and percent are both only about 1x1. that means that borders wouldn't show at all!
+        PlaneSettings settings4 = PaneOfManyPlanes.setPlane(border, plane, (plane == Plane.normal || plane == Plane.percent) ? PlaneScale.size : PlaneScale.scale);
         settings4.boundary().bind(switch (plane) {
             case screen -> pomp.planeManager.screenSpace;
             case normal -> pomp.planeManager.normalSpace;

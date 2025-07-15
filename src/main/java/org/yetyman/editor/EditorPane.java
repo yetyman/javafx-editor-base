@@ -1,9 +1,12 @@
 package org.yetyman.editor;
 
+import binding.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
@@ -14,6 +17,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,6 +32,7 @@ public class EditorPane extends Pane {
     AtomicReference<Anchor> draggedAnchor = new AtomicReference<>();
 
     public final ObservableList<EditorItem> editorItems = FXCollections.observableArrayList();
+    public final SimpleBooleanProperty renderTargetBounds = new SimpleBooleanProperty(false);
 
     public EditorPane(){
         getChildren().addAll(bgCanvas, transformationPane, fgCanvas);
@@ -55,6 +60,9 @@ public class EditorPane extends Pane {
                 }
             }
         });
+        transformationPane.planeManager.addOnRefreshListener(pm->{
+            requestLayout();
+        });
     }
 
     @Override
@@ -80,6 +88,16 @@ public class EditorPane extends Pane {
 
     protected void drawBackground(GraphicsContext gc){
         gc.clearRect(0,0, getWidth(), getHeight());
+
+        if(renderTargetBounds.get()) {
+            Bounds targetInScreen = transformationPane.planeManager.fromTo(Plane.target, Plane.screen, transformationPane.planeManager.targetSpace.get());
+            gc.setStroke(Color.BLACK);
+            gc.setLineWidth(1);
+            gc.strokeRect(targetInScreen.getMinX(), targetInScreen.getMinY(), targetInScreen.getWidth(), targetInScreen.getHeight());
+            gc.setStroke(Color.TRANSPARENT);
+            gc.setLineWidth(0);
+        }
+
 
         for (EditorItem editorItem : editorItems) {
             editorItem.renderBackground(this.transformationPane.planeManager, gc);

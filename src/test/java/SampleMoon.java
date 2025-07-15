@@ -71,7 +71,9 @@ public class SampleMoon implements EditorItem {
 
         sub.location.bindOut(s -> {
             cyclePrevent(() -> {
+                sub.location.set(new Point2D(sub.location.get().getX(), circle.location.get().getY()));
                 shadow.setCenterX(sub.location.get().getX()-circle.location.get().getX()+20);
+
 
                 moon[0] = Shape.subtract(full, shadow);
                 moon[0].setStroke(Color.BLUE);

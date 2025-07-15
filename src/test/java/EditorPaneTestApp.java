@@ -125,6 +125,8 @@ public class EditorPaneTestApp extends Application {
             }
         };
 
+        editor.renderTargetBounds.set(true);
+
         Anchor a1 = editor.createAnchor(EditorPane.AnchorStyle.round);
         Anchor a2 = editor.createAnchor(EditorPane.AnchorStyle.round);
         Anchor a3 = editor.createAnchor(EditorPane.AnchorStyle.round);

@@ -50,7 +50,7 @@ public class PlaneManager {
 
     public ObjectProperty<BoundaryFit> targetPlaneFit = new SimpleObjectProperty<>(BoundaryFit.fit_largest);
 
-    private boolean prevent = false;//allows grouped changes
+    private int prevent = 0;//allows grouped changes
     public final DoubleProperty zoomX = new SimpleDoubleProperty(1);
     public final DoubleProperty zoomY = new SimpleDoubleProperty(1);
     public final DoubleProperty panX = new SimpleDoubleProperty(0);
@@ -68,7 +68,7 @@ public class PlaneManager {
     }
 
     private void refresh(){
-        if(prevent)
+        if(prevent > 0)
             return;
 
         Bounds screen = screenSpace.get();
@@ -133,7 +133,7 @@ public class PlaneManager {
 
         //happens in normal space
         Scale zoom = new Scale(zoomX, zoomY, normal.getWidth()/2, normal.getHeight()/2);
-        Translate translate = new Translate(-panX, -panY);
+        Translate translate = new Translate(panX, panY);
 
         try {
             normalPlaneToScreen = translate.createConcatenation(zoom).createConcatenation(normalToScreen);
@@ -156,6 +156,16 @@ public class PlaneManager {
             screenOriginInPercent = screenPlaneToPercent.transform(0, 0);
         } catch (Exception ex) {
             log.error("Could not define transformations between planes", ex);
+        }
+
+        try {
+            if(onRefreshListeners!=null) {
+                for (Consumer<PlaneManager> onRefreshListener : onRefreshListeners) {
+                    onRefreshListener.accept(this);
+                }
+            }
+        } catch (Exception ex) {
+            log.error("issues invoking refresh listeners", ex);
         }
     }
 
@@ -208,14 +218,30 @@ public class PlaneManager {
     public void zoom(double scaleX, double scaleY) {
         setZoom(zoomX.get()*scaleX, zoomY.get()*scaleY);
     }
+    /**
+     * relative zoom. for absolute zoom, use setZoom
+     * @param scaleX the scale, in multiplication, of zoom relative to current zoom. zoom *= scale
+     * @param scaleY the scale, in multiplication, of zoom relative to current zoom. zoom *= scale
+     */
+    public void zoom(double scaleX, double scaleY, double screenFocusX, double screenFocusY) {
+        Point2D originalScreenPt = new Point2D(screenFocusX, screenFocusY);
+        Point2D was = fromTo(Plane.screen, Plane.normal, originalScreenPt);
+
+        setZoom(zoomX.get()*scaleX, zoomY.get()*scaleY);
+
+        Point2D is = fromTo(Plane.normal, Plane.screen, was);
+        Point2D delta = originalScreenPt.subtract(is);
+
+        pan(delta.getX(), delta.getY());
+    }
     public void setZoom(double scale) {
         setZoom(scale, scale);
     }
     public void setZoom(double scaleX, double scaleY) {
-        prevent = true;
+        prevent++;
         zoomX.set(scaleX);
         zoomY.set(scaleY);
-        prevent = false;
+        prevent--;
         refresh();
     }
 
@@ -225,13 +251,13 @@ public class PlaneManager {
      * @param moveY the move, in addition, of pan relative to current pan. pan += move
      */
     public void pan(double moveX, double moveY) {
-        setPan(panX.get()*moveX, panY.get()*moveY);
+        setPan(panX.get()+moveX, panY.get()+moveY);
     }
     public void setPan(double x, double y) {
-        prevent = true;
+        prevent++;
         panX.set(x);
         panY.set(y);
-        prevent = false;
+        prevent--;
         refresh();
     }
 
@@ -260,15 +286,15 @@ public class PlaneManager {
      * @param scaleY the scale, in multiplication, of zoom relative to current zoom. zoom *= scale
      */
     public void pz(double moveX, double moveY, double scaleX, double scaleY) {
-        setPZ(panX.get()*moveX, panY.get()*moveY,zoomX.get()*scaleX, zoomY.get()*scaleY);
+        setPZ(panX.get()+moveX, panY.get()+moveY,zoomX.get()*scaleX, zoomY.get()*scaleY);
     }
     public void setPZ(double panX, double panY, double scaleX, double scaleY) {
-        prevent = true;
+        prevent++;
         zoomX.set(scaleX);
         zoomY.set(scaleY);
         this.panX.set(panX);
         this.panY.set(panY);
-        prevent = false;
+        prevent--;
         refresh();
     }
 

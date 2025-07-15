@@ -7,8 +7,13 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.transform.Affine;
 import javafx.scene.transform.Scale;
+import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +32,25 @@ public class PaneOfManyPlanes extends Pane {
         planeManager.addOnRefreshListener(s-> {
             hideOffscreenNodes();
             requestLayout();
+        });
+
+        addEventHandler(ScrollEvent.ANY, evt->{
+            Point2D focus = new Point2D(evt.getX(), evt.getY()); //planeManager.inNormalSpace(new Point2D(evt.getX(), evt.getY()));
+            double zoom = (evt.getDeltaX() + evt.getDeltaY())/100d + 1d;
+
+            planeManager.zoom(zoom, zoom, focus.getX(), focus.getY());
+        });
+
+        AtomicReference<Point2D> pt = new AtomicReference<>();
+        addEventHandler(MouseEvent.MOUSE_PRESSED, evt->{
+            pt.set(new Point2D(evt.getX(), evt.getY()));
+        });
+        addEventHandler(MouseEvent.MOUSE_DRAGGED, evt->{
+            Point2D pt2 = new Point2D(evt.getX(), evt.getY());
+            Point2D delta = pt2.subtract(pt.get());
+            pt.set(pt2);
+
+            planeManager.pan(delta.getX(), delta.getY());
         });
     }
 
