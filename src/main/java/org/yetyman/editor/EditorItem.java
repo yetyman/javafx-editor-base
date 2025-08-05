@@ -12,9 +12,10 @@ public interface EditorItem {
      *
      * @param pane
      */
-    void initialize(EditorPane pane);
+    void initialize(EditorPane editor);
     void renderBackground(PlaneManager planes, GraphicsContext gc);
     void renderForeground(PlaneManager planes, GraphicsContext gc);
     List<Node> getNodes();
     List<Anchor> getAnchors();
+    void refreshAnchors();
 }

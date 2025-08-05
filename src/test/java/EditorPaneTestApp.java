@@ -6,8 +6,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +44,8 @@ public class EditorPaneTestApp extends Application {
         placeHolder2.setOnMouseClicked(evt->box.changeUI(placeHolder2));
         placeHolder3.setOnMouseClicked(evt->box.changeUI(placeHolder3));
 
+        var path1 = createPathTest();
+
 
         var moon = createSampleMoon();
 
@@ -55,6 +56,21 @@ public class EditorPaneTestApp extends Application {
         this.primaryStage = primaryStage;
         this.primaryStage.setScene(new Scene(controller));
         primaryStage.show();
+    }
+
+    private Path createPathTest() {
+        Path p = new Path(
+            new MoveTo(30,30),
+            new LineTo(30,30) { { setAbsolute(false);}},
+            new QuadCurveTo(0, 30,-30,30) { { setAbsolute(false);}},
+            new CubicCurveTo(-30, 0, -30, 0, -30,-30) { { setAbsolute(false);}},
+            new ClosePath()
+        );
+        return p;
+    }
+
+    private PathElement selectPathElement(Path path, Point2D loc) {
+        throw new RuntimeException("STUB");
     }
 
     private Node createPlaceHolder() {

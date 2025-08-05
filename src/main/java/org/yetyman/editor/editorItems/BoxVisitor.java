@@ -133,43 +133,42 @@ public class BoxVisitor implements EditorItem {
                 updateBoxPane();
             });
         });
-        plane.bindOut((s,a,b)->{
-            cyclePrevent(() -> {
-                if(b!=null) {
-                    for (Anchor anchor : anchors) {
-                        anchor.ui.get().setVisible(true);
-                    }
-                    //minorly biased here fitting the anchors to the box, rather than the box to anchors.
-                    Bounds bounds = plane.get().boundary().get();
-                    double rotation = currentRotationMatrix.getAngle();
+    }
 
-                    Point2D tlPt = new Point2D(bounds.getMinX(), bounds.getMinY());
-                    Point2D trPt = new Point2D(bounds.getMaxX(), bounds.getMinY());
-                    Point2D brPt = new Point2D(bounds.getMaxX(), bounds.getMaxY());
-                    Point2D blPt = new Point2D(bounds.getMinX(), bounds.getMaxY());
-                    Point2D cPt = new Point2D(bounds.getCenterX(), bounds.getCenterY());
+    public void refreshAnchors() {
+        if(plane.get() !=null) {
+            for (Anchor anchor : anchors) {
+                anchor.ui.get().setVisible(true);
+            }
+            //minorly biased here fitting the anchors to the box, rather than the box to anchors.
+            Bounds bounds = plane.get().boundary().get();
+            double rotation = currentRotationMatrix.getAngle();
 
-                    Rotate rRot = new Rotate(rotation, cPt.getX(), cPt.getY());
+            Point2D tlPt = new Point2D(bounds.getMinX(), bounds.getMinY());
+            Point2D trPt = new Point2D(bounds.getMaxX(), bounds.getMinY());
+            Point2D brPt = new Point2D(bounds.getMaxX(), bounds.getMaxY());
+            Point2D blPt = new Point2D(bounds.getMinX(), bounds.getMaxY());
+            Point2D cPt = new Point2D(bounds.getCenterX(), bounds.getCenterY());
 
-                    tlPt = rRot.transform(tlPt);
-                    trPt = rRot.transform(trPt);
-                    brPt = rRot.transform(brPt);
-                    blPt = rRot.transform(blPt);
+            Rotate rRot = new Rotate(rotation, cPt.getX(), cPt.getY());
 
-                    tr.location.set(trPt);
-                    br.location.set(brPt);
-                    tl.location.set(tlPt);
-                    bl.location.set(blPt);
+            tlPt = rRot.transform(tlPt);
+            trPt = rRot.transform(trPt);
+            brPt = rRot.transform(brPt);
+            blPt = rRot.transform(blPt);
 
-                    updateCAndR();
-                    updateBoxPane();
-                } else {
-                    for (Anchor anchor : anchors) {
-                        anchor.ui.get().setVisible(false);
-                    }
-                }
-            });
-        }).forcePush();
+            tr.location.set(trPt);
+            br.location.set(brPt);
+            tl.location.set(tlPt);
+            bl.location.set(blPt);
+
+            updateCAndR();
+            updateBoxPane();
+        } else {
+            for (Anchor anchor : anchors) {
+                anchor.ui.get().setVisible(false);
+            }
+        }
     }
 
     private void updateBoxPane() {
@@ -291,5 +290,7 @@ public class BoxVisitor implements EditorItem {
         if(!n.getTransforms().contains(currentRotationMatrix))
             n.getTransforms().add(currentRotationMatrix);
         this.plane.set(EditorPane.getPlaneSettings(n));//plane binding will update locations
+
+        cyclePrevent(this::refreshAnchors);
     }
 }

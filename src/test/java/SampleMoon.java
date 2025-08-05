@@ -120,4 +120,9 @@ public class SampleMoon implements EditorItem {
     public List<Anchor> getAnchors() {
         return anchors;
     }
+
+    @Override
+    public void refreshAnchors() {
+        circle.location.getListeners().getFirst().forcePush();
+    }
 }

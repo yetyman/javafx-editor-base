@@ -234,4 +234,9 @@ public class SampleBox implements EditorItem {
     public List<Anchor> getAnchors() {
         return anchors;
     }
+
+    @Override
+    public void refreshAnchors() {
+        c.location.getListeners().getFirst().forcePush();
+    }
 }

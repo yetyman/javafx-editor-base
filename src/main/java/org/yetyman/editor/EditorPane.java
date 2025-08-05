@@ -124,6 +124,10 @@ public class EditorPane extends Pane {
         return PaneOfManyPlanes.getPlane(n);
     }
 
+    public void removeAnchor(Anchor anchor) {
+        anchors.remove(anchor);
+    }
+
     public enum AnchorStyle { round, square };
     public Anchor createAnchor(AnchorStyle anchorStyle) {
         Anchor a = new Anchor();
