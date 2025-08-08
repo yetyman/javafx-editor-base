@@ -10,7 +10,6 @@ public interface EditorItem {
      * initialize anchors and the main item here.
      * including anchor movement listeners
      *
-     * @param pane
      */
     void initialize(EditorPane editor);
     void renderBackground(PlaneManager planes, GraphicsContext gc);
